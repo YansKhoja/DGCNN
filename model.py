@@ -5,11 +5,9 @@ from torch.nn import Conv1d, MaxPool1d, Linear, Dropout
 from torch_geometric.nn import GCNConv, global_sort_pool
 from torch_geometric.utils import remove_self_loops
 
-
-class Model(nn.Module):
+class Dgcnn(torch.nn.Module):
     def __init__(self, num_features, num_classes):
-        super(Model, self).__init__()
-
+        super(Dgcnn, self).__init__()
         self.conv1 = GCNConv(num_features, 32)
         self.conv2 = GCNConv(32, 32)
         self.conv3 = GCNConv(32, 32)
@@ -24,6 +22,7 @@ class Model(nn.Module):
 
     def forward(self, data):
         x, edge_index, batch = data.x, data.edge_index, data.batch
+        print(data.x.shape)
         edge_index, _ = remove_self_loops(edge_index)
 
         x_1 = torch.tanh(self.conv1(x, edge_index))
