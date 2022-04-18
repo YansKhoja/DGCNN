@@ -22,9 +22,7 @@ class Dgcnn(torch.nn.Module):
 
     def forward(self, data):
         x, edge_index, batch = data.x, data.edge_index, data.batch
-        print(data.x.shape)
-        edge_index, _ = remove_self_loops(edge_index)
-
+        #edge_index, _ = remove_self_loops(edge_index)
         x_1 = torch.tanh(self.conv1(x, edge_index))
         x_2 = torch.tanh(self.conv2(x_1, edge_index))
         x_3 = torch.tanh(self.conv3(x_2, edge_index))
@@ -39,5 +37,4 @@ class Dgcnn(torch.nn.Module):
         out = self.relu(self.classifier_1(x))
         out = self.drop_out(out)
         classes = F.log_softmax(self.classifier_2(out), dim=-1)
-
         return classes
