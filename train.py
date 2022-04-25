@@ -93,14 +93,14 @@ if __name__ == '__main__':
         with open("C:/Users/Utilisateur/Documents/GitHub/DGCNN/result/"+name_file,"w", encoding='utf-8') as file :
             print(f"Train start on {NUM_EPOCHS}")
             i = 0
-            tab = np.empty((NUM_EPOCHS,4))
+            tab = np.empty((NUM_EPOCHS,3))
             print(tab)
             for epoch in range(0, NUM_EPOCHS):
-                train_acc = test(train_loader)
+                train_loss = train(train_loader)
                 test_acc = test(test_loader)
-                print(f'Epoch: {epoch:},Train Acc: {train_acc},Test Acc: {test_acc}')
-                file.write(f'{epoch},{train_acc},{test_acc} \n')
-                tab[i,:] = np.array([epoch, train_acc, test_acc])
+                print(f'Epoch: {epoch:},Train Acc: {train_loss},Test Acc: {test_acc}')
+                file.write(f'{epoch},{train_loss},{test_acc} \n')
+                tab[i,:] = np.array([epoch, train_loss, test_acc])
                 i += 1
             print(f"Train finished")
             print(f"execution finish")
@@ -108,63 +108,52 @@ if __name__ == '__main__':
     else:
         #Read result for each dataset in order to compare visually scores
         df_IMDB = pd.read_table("C:/Users/Utilisateur/Documents/GitHub/DGCNN/result/result_IMDB-BINARY.txt", delimiter=",",
-                                names=['epoch', 'train_acc', 'test_acc'],
-                                dtype={'epoch': int, 'train_acc': float, 'test_acc': float})
+                                names=['epoch', 'train_loss', 'test_acc'],
+                                dtype={'epoch': int, 'train_loss': float, 'test_acc': float})
         df_PROTEINS = pd.read_table("C:/Users/Utilisateur/Documents/GitHub/DGCNN/result/result_PROTEINS.txt", delimiter=",",
-                                names=['epoch', 'train_acc', 'test_acc', 'train_loss'],
-                                dtype={'epoch': int, 'train_acc': float, 'test_acc': float})
+                                names=['epoch', 'train_loss', 'test_acc'],
+                                dtype={'epoch': int, 'train_loss': float, 'test_acc': float})
         df_REDDIT = pd.read_table("C:/Users/Utilisateur/Documents/GitHub/DGCNN/result/result_REDDIT-BINARY.txt",
                                     delimiter=",",
-                                    names=['epoch', 'train_acc', 'test_acc', 'train_loss'],
-                                    dtype={'epoch': int, 'train_acc': float, 'test_acc': float})
+                                    names=['epoch', 'train_loss', 'test_acc'],
+                                    dtype={'epoch': int, 'train_loss': float, 'test_acc': float})
 
         # Create figure
-        fig = make_subplots(rows=3, cols=1, subplot_titles=("train_acc", "test_acc"))
+        fig = make_subplots(rows=2, cols=1, subplot_titles=("TRAIN LOSS", "TEST ACCURACY"))
 
         fig.add_trace(
             go.Scatter(x=df_IMDB['epoch'],
-                       y=df_IMDB['train_acc'],
+                       y=df_IMDB['train_loss']*100,
                        name="IMDB",
                        legendgroup="IMDB",
+                       line=dict(color='red')),
+            row=1,
+            col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(x=df_PROTEINS['epoch'],
+                       y=df_PROTEINS['train_loss']*100,
+                       name="PROTEINS",
+                       legendgroup="PROTEINS",
+                       line=dict(color='cyan')),
+            row=1, col=1
+        )
+        fig.add_trace(
+            go.Scatter(x=df_REDDIT['epoch'],
+                       y=df_REDDIT['train_loss']*100,
+                       name="REDDIT",
+                       legendgroup="REDDIT",
                        line=dict(color='blue')),
             row=1,
             col=1
         )
 
-        fig.add_trace(
-            go.Scatter(x=df_PROTEINS['epoch'],
-                       y=df_PROTEINS['train_acc'],
-                       name="PROTEINS",
-                       legendgroup="PROTEINS",
-                       line=dict(color='red')),
-            row=1, col=1
-        )
-        fig.add_trace(
-            go.Scatter(x=df_REDDIT['epoch'],
-                       y=df_REDDIT['train_acc'],
-                       name="REDDIT",
-                       legendgroup="REDDIT",
-                       line=dict(color='green')),
-            row=1,
-            col=1
-        )
-
         fig.append_trace(
             go.Scatter(x=df_IMDB['epoch'],
-                       y=df_IMDB['test_acc'],
+                       y=df_IMDB['test_acc']*100,
                        name="IMDB",
                        legendgroup="IMDB",
-                       line=dict(color='blue'),
-                       showlegend=False),
-            row=2,
-            col=1
-        )
-
-        fig.append_trace(
-            go.Scatter(x=df_PROTEINS['epoch'],
-                       y=df_PROTEINS['test_acc'],
-                       name="PROTEINS",
-                       egendgroup="PROTEINS",
                        line=dict(color='red'),
                        showlegend=False),
             row=2,
@@ -172,41 +161,55 @@ if __name__ == '__main__':
         )
 
         fig.append_trace(
+            go.Scatter(x=df_PROTEINS['epoch'],
+                       y=df_PROTEINS['test_acc']*100,
+                       name="PROTEINS",
+                       legendgroup="PROTEINS",
+                       line=dict(color='cyan'),
+                       showlegend=False),
+            row=2,
+            col=1
+        )
+
+        fig.append_trace(
             go.Scatter(x=df_REDDIT['epoch'],
-                       y=df_REDDIT['test_acc'],
+                       y=df_REDDIT['test_acc']*100,
                        name="REDDIT",
                        legendgroup="REDDIT",
-                       line=dict(color='green'),
+                       line=dict(color='blue'),
                        showlegend=False),
             row=2,
             col=1
         )
 
         fig.update_xaxes(title_text="epoch",
-                         range=[min(df_PROTEINS['epoch']) - 1, max(df_PROTEINS['epoch']) + 1],
+                         range=[min(df_PROTEINS['epoch']), max(df_PROTEINS['epoch']) + 1],
                          showgrid=False,
                          row=1,
                          col=1)
-        fig.update_yaxes(title_text="Train_acc",
+        fig.update_yaxes(title_text="Train loss",
                          showgrid=False,
+                         range=[20, 80],
                          row=1,
                          col=1)
         fig.update_xaxes(title_text="epoch",
-                         range=[min(df_PROTEINS['epoch']) - 1, max(df_PROTEINS['epoch']) + 1],
+                         range=[min(df_PROTEINS['epoch']), max(df_PROTEINS['epoch']) + 1],
                          showgrid=False,
                          row=2,
                          col=1)
-        fig.update_yaxes(title_text="Test_acc",
+        fig.update_yaxes(title_text="Test acc",
                          showgrid=False,
+                         range=[50, 80],
                          row=2,
-                         col=1)
-        fig.update_xaxes(title_text="epoch",
-                         range=[min(df_PROTEINS['epoch']) - 1, max(df_PROTEINS['epoch']) + 1],
-                         showgrid=False,
-                         row=3,
                          col=1)
 
-        fig.update_layout(title_text="DGCNN results", height=700)
+
+
+        fig.update_layout(title_text="DGCNN results", height=700, width=700)
 
         fig.write_html('./dataviz/result.html', auto_open=True)
+
+        print(max(df_PROTEINS['test_acc']))
+        print(max(df_IMDB['test_acc']))
+        print(max(df_REDDIT['test_acc']))
 
